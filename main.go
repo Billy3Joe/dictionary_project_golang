@@ -1,3 +1,4 @@
+// main.go
 package main
 
 import (
@@ -8,7 +9,7 @@ import (
 )
 
 func main() {
-	d := dictionary.New()
+	d := dictionary.New("dictionary.json")
 	reader := bufio.NewReader(os.Stdin)
 
 	for {
