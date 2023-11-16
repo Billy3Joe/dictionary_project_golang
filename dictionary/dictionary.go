@@ -8,7 +8,7 @@ import (
 )
 
 type Entry struct {
-	Definition string
+	Definition string `json:"definition"`
 }
 
 func (e Entry) String() string {
@@ -25,13 +25,14 @@ func New(filename string) *Dictionary {
 		filename: filename,
 		entries:  make(map[string]Entry),
 	}
-	d.loadFromFile()
+	if err := d.loadFromFile(); err != nil {
+		fmt.Println("Error loading from file:", err)
+	}
 	return d
 }
 
 func (d *Dictionary) Add(word string, definition string) {
-	entry := Entry{Definition: definition}
-	d.entries[word] = entry
+	d.entries[word] = Entry{Definition: definition}
 	d.syncToFile()
 }
 
@@ -48,13 +49,11 @@ func (d *Dictionary) Remove(word string) {
 	d.syncToFile()
 }
 
-func (d *Dictionary) List() ([]string, map[string]Entry) {
-	words := make([]string, 0, len(d.entries))
+func (d *Dictionary) List() {
+	fmt.Println("Words in the dictionary:")
 	for word, entry := range d.entries {
-		words = append(words, word)
-		fmt.Println("Word:", word, "Definition:", entry.String()) // For debugging
+		fmt.Printf("Word: %s\nDefinition: %s\n\n", word, entry.String())
 	}
-	return words, d.entries
 }
 
 func (d *Dictionary) saveToFile() error {

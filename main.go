@@ -6,6 +6,7 @@ import (
 	"estiam/dictionary"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -42,16 +43,25 @@ func main() {
 
 func actionAdd(d *dictionary.Dictionary, reader *bufio.Reader) {
 	fmt.Print("Enter word: ")
-	word, _ := reader.ReadString('\n')
-	word = word[:len(word)-1] // Remove the newline character
+	word, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input:", err)
+		return
+	}
+	word = strings.TrimSpace(word)
 
 	fmt.Print("Enter definition: ")
-	definition, _ := reader.ReadString('\n')
-	definition = definition[:len(definition)-1] // Remove the newline character
+	definition, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println("Error reading input:", err)
+		return
+	}
+	definition = strings.TrimSpace(definition)
 
 	d.Add(word, definition)
 	fmt.Println("Word added successfully!")
 }
+
 
 func actionDefine(d *dictionary.Dictionary, reader *bufio.Reader) {
 	fmt.Print("Enter word to define: ")
@@ -76,10 +86,5 @@ func actionRemove(d *dictionary.Dictionary, reader *bufio.Reader) {
 }
 
 func actionList(d *dictionary.Dictionary) {
-	words, _ := d.List()
-	fmt.Println("Words in the dictionary:")
-	for _, word := range words {
-		entry, _ := d.Get(word)
-		fmt.Printf("%s: %s\n", word, entry.Definition)
-	}
+	d.List()
 }
