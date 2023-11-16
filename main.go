@@ -1,4 +1,3 @@
-// main.go
 package main
 
 import (
@@ -6,26 +5,25 @@ import (
 	"sort"
 )
 
-// Dictionary représente une carte de mots et de définitions.
 type Dictionary map[string]string
 
-// Add ajoute un mot et sa définition au dictionnaire.
+func NewDictionary() Dictionary {
+	return make(Dictionary)
+}
+
 func (d Dictionary) Add(word, definition string) {
 	d[word] = definition
 }
 
-// Get renvoie la définition d'un mot du dictionnaire.
 func (d Dictionary) Get(word string) (string, bool) {
-	definition, found := d[word]
-	return definition, found
+	definition, exists := d[word]
+	return definition, exists
 }
 
-// Remove supprime un mot du dictionnaire.
 func (d Dictionary) Remove(word string) {
 	delete(d, word)
 }
 
-// List renvoie une liste triée des mots et de leurs définitions.
 func (d Dictionary) List() []string {
 	var wordList []string
 	for word := range d {
@@ -36,29 +34,24 @@ func (d Dictionary) List() []string {
 }
 
 func main() {
-	// Créez une nouvelle instance de Dictionary.
-	myDictionary := make(Dictionary)
+	dict := NewDictionary()
 
-	// Ajoutez des mots et des définitions.
-	myDictionary.Add("gopher", "Un animal mignon")
-	myDictionary.Add("go", "Un langage de programmation")
-	myDictionary.Add("map", "Un magasin clé-valeur")
+	dict.Add("Go", "A statically typed compiled programming language designed at Google.")
+	dict.Add("Map", "A collection type that holds key-value pairs")
 
-	// Affichez la définition d'un mot spécifique.
-	definition, found := myDictionary.Get("gopher")
-	if found {
-		fmt.Printf("Définition de 'gopher' : %s\n", definition)
+	word := "Go"
+	definition, exists := dict.Get(word)
+	if exists {
+		fmt.Printf("Definition of '%s': %s\n", word, definition)
 	} else {
-		fmt.Println("Mot non trouvé dans le dictionnaire.")
+		fmt.Println("Word not found:", word)
 	}
 
-	// Supprimez un mot de la map.
-	myDictionary.Remove("go")
+	dict.Remove("Map")
 
-	// Obtenez la liste triée des mots et de leurs définitions.
-	wordList := myDictionary.List()
-	fmt.Println("Liste triée des mots :")
-	for _, word := range wordList {
-		fmt.Printf("%s : %s\n", word, myDictionary[word])
+	fmt.Println("Words in dictionary:")
+	for _, w := range dict.List() {
+		def, _ := dict.Get(w)
+		fmt.Printf("%s: %s\n", w, def)
 	}
 }
