@@ -1,57 +1,84 @@
 package main
 
 import (
+	"bufio"
+	"estiam/dictionary"
 	"fmt"
-	"sort"
+	"os"
 )
 
-type Dictionary map[string]string
-
-func NewDictionary() Dictionary {
-	return make(Dictionary)
-}
-
-func (d Dictionary) Add(word, definition string) {
-	d[word] = definition
-}
-
-func (d Dictionary) Get(word string) (string, bool) {
-	definition, exists := d[word]
-	return definition, exists
-}
-
-func (d Dictionary) Remove(word string) {
-	delete(d, word)
-}
-
-func (d Dictionary) List() []string {
-	var wordList []string
-	for word := range d {
-		wordList = append(wordList, word)
-	}
-	sort.Strings(wordList)
-	return wordList
-}
-
 func main() {
-	dict := NewDictionary()
+	d := dictionary.New()
+	reader := bufio.NewReader(os.Stdin)
 
-	dict.Add("Go", "A statically typed compiled programming language designed at Google.")
-	dict.Add("Map", "A collection type that holds key-value pairs")
+	for {
+		fmt.Println("1. Add Word")
+		fmt.Println("2. Define Word")
+		fmt.Println("3. Remove Word")
+		fmt.Println("4. List Words")
+		fmt.Println("5. Exit")
 
-	word := "Go"
-	definition, exists := dict.Get(word)
-	if exists {
-		fmt.Printf("Definition of '%s': %s\n", word, definition)
-	} else {
-		fmt.Println("Word not found:", word)
+		fmt.Print("Choose an action (1-5): ")
+		var choice int
+		fmt.Scanln(&choice)
+
+		switch choice {
+		case 1:
+			actionAdd(d, reader)
+		case 2:
+			actionDefine(d, reader)
+		case 3:
+			actionRemove(d, reader)
+		case 4:
+			actionList(d)
+		case 5:
+			os.Exit(0)
+		default:
+			fmt.Println("Invalid choice. Please choose a number between 1 and 5.")
+		}
 	}
+}
 
-	dict.Remove("Map")
+func actionAdd(d *dictionary.Dictionary, reader *bufio.Reader) {
+	fmt.Print("Enter word: ")
+	word, _ := reader.ReadString('\n')
+	word = word[:len(word)-1] // Remove the newline character
 
-	fmt.Println("Words in dictionary:")
-	for _, w := range dict.List() {
-		def, _ := dict.Get(w)
-		fmt.Printf("%s: %s\n", w, def)
+	fmt.Print("Enter definition: ")
+	definition, _ := reader.ReadString('\n')
+	definition = definition[:len(definition)-1] // Remove the newline character
+
+	d.Add(word, definition)
+	fmt.Println("Word added successfully!")
+}
+
+func actionDefine(d *dictionary.Dictionary, reader *bufio.Reader) {
+	fmt.Print("Enter word to define: ")
+	word, _ := reader.ReadString('\n')
+	word = word[:len(word)-1] // Remove the newline character
+
+	entry, err := d.Get(word)
+	if err != nil {
+		fmt.Println("Word not found.")
+	} else {
+		fmt.Println("Definition:", entry.String())
+	}
+}
+
+func actionRemove(d *dictionary.Dictionary, reader *bufio.Reader) {
+	fmt.Print("Enter word to remove: ")
+	word, _ := reader.ReadString('\n')
+	word = word[:len(word)-1] // Remove the newline character
+
+	d.Remove(word)
+	fmt.Println("Word removed successfully!")
+}
+
+func actionList(d *dictionary.Dictionary) {
+	words, _ := d.List()
+	fmt.Println("Words in the dictionary:")
+	for _, word := range words {
+		entry, _ := d.Get(word)
+		fmt.Printf("%s: %s\n", word, entry.Definition)
 	}
 }
