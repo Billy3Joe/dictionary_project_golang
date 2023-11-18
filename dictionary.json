@@ -1,8 +1,10 @@
 {
     "Billy": {
+        "mot": "",
         "definition": "J'habite à Paris"
     },
     "Joe": {
+        "mot": "",
         "definition": "J'habite à Madrid"
     }
 }
