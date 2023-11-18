@@ -1,1 +1,8 @@
-{"Billy":{"definition":"Paris"},"Joe":{"definition":"Madrid"}}
+{
+    "Billy": {
+        "definition": "J'habite à Paris"
+    },
+    "Joe": {
+        "definition": "J'habite à Madrid"
+    }
+}

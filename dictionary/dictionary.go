@@ -63,7 +63,10 @@ func (d *Dictionary) saveToFile() error {
 	}
 	defer file.Close()
 
+	// Utiliser l'option Indent pour formater le JSON avec une indentation
 	encoder := json.NewEncoder(file)
+	encoder.SetIndent("", "    ") // Utiliser quatre espaces pour l'indentation
+
 	if err := encoder.Encode(d.entries); err != nil {
 		return err
 	}
