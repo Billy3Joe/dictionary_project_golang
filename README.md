@@ -1,4 +1,5 @@
 # 1. Dictionary Map
 # 2. Dictionary File
-# 2. Dictionary Channels
+# 3. Dictionary Channels
+# 4. API REST avec Gorilla Mux
 ## Billy Joe KOM KAMZE

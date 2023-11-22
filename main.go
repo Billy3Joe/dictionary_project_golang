@@ -2,120 +2,63 @@
 package main
 
 import (
-	"bufio"
-	"estiam/dictionary"
 	"fmt"
+	"net/http"
 	"os"
-	"strings"
+
+	"estiam/dictionary"
+
+	"github.com/gorilla/mux"
 )
 
+// Entry représente une entrée dans le dictionnaire avec un mot et sa définition.
+type Entry struct {
+    Word       string `json:"mot"`
+    Definition string `json:"definition"`
+}
+
 func main() {
-	d := dictionary.New("dictionary.json")
-	reader := bufio.NewReader(os.Stdin)
+    // Créer une instance de Dictionary en utilisant la fonction New définie dans votre package
+    d := dictionary.New("dictionary.json")
 
-	// Channels pour les opérations d'ajout et de suppression
-	addChan := make(chan dictionary.Entry)
-	removeChan := make(chan string)
+    // Initialiser le routeur Gorilla Mux
+    r := mux.NewRouter()
 
-	// Goroutine pour traiter les opérations d'ajout
-	go func() {
-		for entry := range addChan {
-			d.Add(entry.Word, entry.Definition)
-			fmt.Println("Word added successfully!")
-		}
-	}()
+    // Enregistrer les routes avec le routeur
+    registerRoutes(r, d)
 
-	// Goroutine pour traiter les opérations de suppression
-	go func() {
-		for word := range removeChan {
-			d.Remove(word)
-			fmt.Println("Word removed successfully!")
-		}
-	}()
+    // Routes existantes
+    r.HandleFunc("/exit", func(w http.ResponseWriter, r *http.Request) {
+        os.Exit(0)
+    }).Methods("GET")
 
-	for {
-		fmt.Println("1. Add Word")
-		fmt.Println("2. Define Word")
-		fmt.Println("3. Remove Word")
-		fmt.Println("4. List Words")
-		fmt.Println("5. Exit")
+    // Utiliser le routeur Gorilla Mux
+    http.Handle("/", r)
 
-		fmt.Print("Choose an action (1-5): ")
-		var choice int
-		fmt.Scanln(&choice)
-
-		switch choice {
-		case 1:
-			actionAdd(reader, addChan)
-		case 2:
-			actionDefine(d, reader)
-		case 3:
-			actionRemove(reader, removeChan)
-		case 4:
-			actionList(d)
-		case 5:
-			close(addChan)
-			close(removeChan)
-			os.Exit(0)
-		default:
-			fmt.Println("Invalid choice. Please choose a number between 1 and 5.")
-		}
-	}
+    // Démarrer le serveur HTTP
+    fmt.Println("Serveur en cours d'exécution sur le port :8080")
+    http.ListenAndServe(":8080", nil)
 }
 
-func actionAdd(reader *bufio.Reader, addChan chan<- dictionary.Entry) {
-	fmt.Print("Enter word: ")
-	word, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input:", err)
-		return
-	}
-	word = strings.TrimSpace(word)
+// registerRoutes enregistre les routes avec le routeur Gorilla Mux.
+func registerRoutes(r *mux.Router, d *dictionary.Dictionary) {
+    r.HandleFunc("/add", d.HandleAdd).Methods("POST")
+    r.HandleFunc("/define/{word}", d.HandleDefine).Methods("GET")
+    r.HandleFunc("/remove/{word}", d.HandleRemove).Methods("DELETE")
+    r.HandleFunc("/list", d.HandleList).Methods("GET")
 
-	fmt.Print("Enter definition: ")
-	definition, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input:", err)
-		return
-	}
-	definition = strings.TrimSpace(definition)
+	// Routes existantes
+	r.HandleFunc("/exit", func(w http.ResponseWriter, r *http.Request) {
+		os.Exit(0)
+	}).Methods("GET")
 
-	// Envoyer les données au channel d'ajout
-	addChan <- dictionary.Entry{Word: word, Definition: definition}
+	// Utiliser le routeur Gorilla Mux
+	http.Handle("/", r)
+
+		// Démarrer le serveur HTTP
+		fmt.Println("Serveur en cours d'exécution sur le port :8080")
+		http.ListenAndServe(":8080", nil)
 }
 
-func actionRemove(reader *bufio.Reader, removeChan chan<- string) {
-	fmt.Print("Enter word to remove: ")
-	word, err := reader.ReadString('\n')
-	if err != nil {
-		fmt.Println("Error reading input:", err)
-		return
-	}
-	word = strings.TrimSpace(word)
 
-	// Envoyer le mot au channel de suppression
-	removeChan <- word
-}
 
-func actionDefine(d *dictionary.Dictionary, reader *bufio.Reader) {
-	fmt.Print("Enter word to define: ")
-	word, _ := reader.ReadString('\n')
-	word = word[:len(word)-1] // Remove the newline character
-
-	// Utiliser une goroutine pour éviter le blocage du programme pendant la définition
-	go func() {
-		entry, err := d.Get(word)
-		if err != nil {
-			fmt.Println("Word not found.")
-		} else {
-			fmt.Println("Definition:", entry.String())
-		}
-	}()
-}
-
-func actionList(d *dictionary.Dictionary) {
-	// Utiliser une goroutine pour éviter le blocage du programme pendant la liste
-	go func() {
-		d.List()
-	}()
-}
