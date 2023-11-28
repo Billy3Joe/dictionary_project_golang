@@ -17,6 +17,7 @@ type Entry struct {
 	Definition string `json:"definition"`
 }
 
+
 // String retourne une représentation textuelle de l'entrée (la définition du mot).
 func (e Entry) String() string {
 	return e.Definition
@@ -85,24 +86,25 @@ func (d *Dictionary) List() {
 
 // RegisterHandlers enregistre les gestionnaires de routes avec le routeur Gorilla Mux.
 func (d *Dictionary) RegisterHandlers(r *mux.Router) {
-	r.HandleFunc("/add", d.HandleAdd).Methods("POST")
-	r.HandleFunc("/define/{word}", d.HandleDefine).Methods("GET")
-	r.HandleFunc("/remove/{word}", d.HandleRemove).Methods("DELETE")
-	r.HandleFunc("/list", d.HandleList).Methods("GET")
+    r.HandleFunc("/add", HandleAdd).Methods("POST")
+    r.HandleFunc("/define/{word}", HandleDefine).Methods("GET")
+    r.HandleFunc("/remove/{word}", HandleRemove).Methods("DELETE")
+    r.HandleFunc("/list", HandleList).Methods("GET")
 }
 
 // HandleAdd gère la requête d'ajout d'une entrée au dictionnaire.
 func (d *Dictionary) HandleAdd(w http.ResponseWriter, r *http.Request) {
-	var entry Entry
-	decoder := json.NewDecoder(r.Body)
-	err := decoder.Decode(&entry)
-	if err != nil {
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
-	d.Add(entry.Word, entry.Definition)
-	fmt.Println("Word added:", entry.Word)
-	fmt.Fprintf(w, "Word added successfully!")
+    // Utilisez la méthode Add de la struct Dictionary
+    var entry Entry
+    decoder := json.NewDecoder(r.Body)
+    err := decoder.Decode(&entry)
+    if err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+    d.Add(entry.Word, entry.Definition)
+    fmt.Println("Word added:", entry.Word)
+    fmt.Fprintf(w, "Word added successfully!")
 }
 
 // HandleDefine gère la requête pour récupérer la définition d'un mot.
@@ -131,19 +133,21 @@ func (d *Dictionary) HandleRemove(w http.ResponseWriter, r *http.Request) {
 
 // HandleList gère la requête pour obtenir la liste de tous les mots dans le dictionnaire.
 func (d *Dictionary) HandleList(w http.ResponseWriter, r *http.Request) {
-	d.mutex.Lock()
-	defer d.mutex.Unlock()
+    // Utiliser le verrou pour éviter les accès concurrents
+    d.mutex.Lock()
+    defer d.mutex.Unlock()
 
-	// Utiliser json.Marshal pour encoder la réponse JSON
-	response, err := json.Marshal(d.entries)
-	if err != nil {
-		http.Error(w, "Erreur lors de la conversion en JSON", http.StatusInternalServerError)
-		return
-	}
+    // Utiliser json.Marshal pour encoder la réponse JSON
+    response, err := json.Marshal(d.entries)
+    if err != nil {
+        http.Error(w, "Erreur lors de la conversion en JSON", http.StatusInternalServerError)
+        return
+    }
 
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(response)
+    w.Header().Set("Content-Type", "application/json")
+    w.Write(response)
 }
+
 
 // saveToFile sauvegarde les données du dictionnaire dans un fichier au format JSON.
 func (d *Dictionary) saveToFile() error {
@@ -151,6 +155,7 @@ func (d *Dictionary) saveToFile() error {
 	if err != nil {
 		return err
 	}
+
 	defer file.Close()
 
 	// Utilise l'option Indent pour formater le JSON avec une indentation
